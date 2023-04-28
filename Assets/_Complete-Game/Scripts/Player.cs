@@ -58,23 +58,20 @@ namespace Completed
             //If it's not the player's turn, exit the function.
             if (!GameManager.instance.playersTurn) return;
 
-            int horizontal = 0; //Used to store the horizontal move direction.
-            int vertical = 0; //Used to store the vertical move direction.
+            var horizontal = 0; //Used to store the horizontal move direction.
+            var vertical = 0; //Used to store the vertical move direction.
 
             //Check if we are running either in the Unity editor or in a standalone build.
 #if UNITY_STANDALONE || UNITY_WEBPLAYER
 
             //Get input from the input manager, round it to an integer and store in horizontal to set x axis move direction
-            horizontal = (int)(Input.GetAxisRaw("Horizontal"));
+            horizontal = (int)Input.GetAxisRaw("Horizontal");
 
             //Get input from the input manager, round it to an integer and store in vertical to set y axis move direction
-            vertical = (int)(Input.GetAxisRaw("Vertical"));
+            vertical = (int)Input.GetAxisRaw("Vertical");
 
             //Check if moving horizontally, if so set vertical to zero.
-            if (horizontal != 0)
-            {
-                vertical = 0;
-            }
+            if (horizontal != 0) vertical = 0;
             //Check if we are running on iOS, Android, Windows Phone 8 or Unity iPhone
 #elif UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
 			//Check if Input has registered more than zero touches
@@ -118,11 +115,9 @@ namespace Completed
 #endif //End of mobile platform dependendent compilation section started above with #elif
             //Check if we have a non-zero value for horizontal or vertical
             if (horizontal != 0 || vertical != 0)
-            {
                 //Call AttemptMove passing in the generic parameter Wall, since that is what Player may interact with if they encounter one (by attacking it)
                 //Pass in horizontal and vertical as parameters to specify the direction to move Player in.
                 AttemptMove<Wall>(horizontal, vertical);
-            }
         }
 
         //AttemptMove overrides the AttemptMove function in the base class MovingObject
@@ -143,10 +138,8 @@ namespace Completed
 
             //If Move returns true, meaning Player was able to move into an empty space.
             if (Move(xDir, yDir, out hit))
-            {
                 //Call RandomizeSfx of SoundManager to play the move sound, passing in two audio clips to choose from.
                 SoundManager.instance.RandomizeSfx(moveSound1, moveSound2);
-            }
 
             //Since the player has moved and lost food points, check if the game has ended.
             CheckIfGameOver();
@@ -161,7 +154,7 @@ namespace Completed
         protected override void OnCantMove<T>(T component)
         {
             //Set hitWall to equal the component passed in as a parameter.
-            Wall hitWall = component as Wall;
+            var hitWall = component as Wall;
 
             //Call the DamageWall function of the Wall we are hitting.
             hitWall.DamageWall(wallDamage);
