@@ -7,9 +7,9 @@ public class TutorialInfoEditor : Editor
 {
 	void OnEnable()
 	{
-		if (PlayerPrefs.HasKey(TutorialInfo.showAtStartPrefsKey))
+		if (PlayerPrefs.HasKey(TutorialInfo.ShowAtStartPrefsKey))
 		{
-			((TutorialInfo)target).showAtStart = PlayerPrefs.GetInt(TutorialInfo.showAtStartPrefsKey) == 1;
+			((TutorialInfo)target)._showAtStart = PlayerPrefs.GetInt(TutorialInfo.ShowAtStartPrefsKey) == 1;
 		}
 	}
 
@@ -21,7 +21,7 @@ public class TutorialInfoEditor : Editor
 
 		if (EditorGUI.EndChangeCheck ()) 
 		{
-			PlayerPrefs.SetInt(TutorialInfo.showAtStartPrefsKey, ((TutorialInfo)target).showAtStart ? 1 : 0);
+			PlayerPrefs.SetInt(TutorialInfo.ShowAtStartPrefsKey, ((TutorialInfo)target)._showAtStart ? 1 : 0);
 		}
 	}
 }

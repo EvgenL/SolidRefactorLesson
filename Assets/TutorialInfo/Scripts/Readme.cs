@@ -1,16 +1,20 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Readme : ScriptableObject
 {
-    public Texture2D icon;
-    public string title;
-    public Section[] sections;
-    public bool loadedLayout;
+    [FormerlySerializedAs("icon")] public Texture2D _icon;
+    [FormerlySerializedAs("title")] public string _title;
+    [FormerlySerializedAs("sections")] public Section[] _sections;
+    [FormerlySerializedAs("loadedLayout")] public bool _loadedLayout;
 
     [Serializable]
     public class Section
     {
-        public string heading, text, linkText, url;
+        [FormerlySerializedAs("heading")] public string _heading;
+        [FormerlySerializedAs("text")] public string _text;
+        [FormerlySerializedAs("linkText")] public string _linkText;
+        [FormerlySerializedAs("url")] public string _url;
     }
 }

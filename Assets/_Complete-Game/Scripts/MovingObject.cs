@@ -1,32 +1,33 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Serialization;
 
 namespace Completed
 {
     //The abstract keyword enables you to create classes and class members that are incomplete and must be implemented in a derived class.
     public abstract class MovingObject : MonoBehaviour
     {
-        public float moveTime = 0.1f; //Time it will take object to move, in seconds.
-        public LayerMask blockingLayer; //Layer on which collision will be checked.
+        public float _moveTime = 0.1f; //Time it will take object to move, in seconds.
+        public LayerMask _blockingLayer; //Layer on which collision will be checked.
 
 
-        private BoxCollider2D boxCollider; //The BoxCollider2D component attached to this object.
-        private Rigidbody2D rb2D; //The Rigidbody2D component attached to this object.
-        private float inverseMoveTime; //Used to make movement more efficient.
-        private bool isMoving; //Is the object currently moving.
+        private BoxCollider2D _boxCollider; //The BoxCollider2D component attached to this object.
+        private Rigidbody2D _rb2D; //The Rigidbody2D component attached to this object.
+        private float _inverseMoveTime; //Used to make movement more efficient.
+        private bool _isMoving; //Is the object currently moving.
 
 
         //Protected, virtual functions can be overridden by inheriting classes.
         protected virtual void Start()
         {
             //Get a component reference to this object's BoxCollider2D
-            boxCollider = GetComponent<BoxCollider2D>();
+            _boxCollider = GetComponent<BoxCollider2D>();
 
             //Get a component reference to this object's Rigidbody2D
-            rb2D = GetComponent<Rigidbody2D>();
+            _rb2D = GetComponent<Rigidbody2D>();
 
             //By storing the reciprocal of the move time we can use it by multiplying instead of dividing, this is more efficient.
-            inverseMoveTime = 50f / moveTime;
+            _inverseMoveTime = 50f / _moveTime;
         }
 
 
@@ -41,16 +42,16 @@ namespace Completed
             var end = start + new Vector2(xDir, yDir);
 
             //Disable the boxCollider so that linecast doesn't hit this object's own collider.
-            boxCollider.enabled = false;
+            _boxCollider.enabled = false;
 
             //Cast a line from start point to end point checking collision on blockingLayer.
-            hit = Physics2D.Linecast(start, end, blockingLayer);
+            hit = Physics2D.Linecast(start, end, _blockingLayer);
 
             //Re-enable boxCollider after linecast
-            boxCollider.enabled = true;
+            _boxCollider.enabled = true;
 
             //Check if nothing was hit and that the object isn't already moving.
-            if (hit.transform == null && !isMoving)
+            if (hit.transform == null && !_isMoving)
             {
                 //Start SmoothMovement co-routine passing in the Vector2 end as destination
                 StartCoroutine(SmoothMovement(end));
@@ -68,7 +69,7 @@ namespace Completed
         protected IEnumerator SmoothMovement(Vector3 end)
         {
             //The object is now moving.
-            isMoving = true;
+            _isMoving = true;
 
             //Calculate the remaining distance to move based on the square magnitude of the difference between current position and end parameter. 
             //Square magnitude is used instead of magnitude because it's computationally cheaper.
@@ -78,10 +79,10 @@ namespace Completed
             while (sqrRemainingDistance > float.Epsilon)
             {
                 //Find a new position proportionally closer to the end, based on the moveTime
-                var newPostion = Vector3.MoveTowards(rb2D.position, end, inverseMoveTime * Time.deltaTime);
+                var newPostion = Vector3.MoveTowards(_rb2D.position, end, _inverseMoveTime * Time.deltaTime);
 
                 //Call MovePosition on attached Rigidbody2D and move it to the calculated position.
-                rb2D.MovePosition(newPostion);
+                _rb2D.MovePosition(newPostion);
 
                 //Recalculate the remaining distance after moving.
                 sqrRemainingDistance = (transform.position - end).sqrMagnitude;
@@ -91,10 +92,10 @@ namespace Completed
             }
 
             //Make sure the object is exactly at the end of its movement.
-            rb2D.MovePosition(end);
+            _rb2D.MovePosition(end);
 
             //The object is no longer moving.
-            isMoving = false;
+            _isMoving = false;
         }
 
 

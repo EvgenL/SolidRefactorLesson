@@ -26,10 +26,10 @@ public class ReadmeEditor : Editor {
 			var readme = SelectReadme();
 			SessionState.SetBool(kShowedReadmeSessionStateName, true);
 			
-			if (readme && !readme.loadedLayout)
+			if (readme && !readme._loadedLayout)
 			{
 				LoadLayout();
-				readme.loadedLayout = true;
+				readme._loadedLayout = true;
 			}
 		} 
 	}
@@ -70,8 +70,8 @@ public class ReadmeEditor : Editor {
 		
 		GUILayout.BeginHorizontal("In BigTitle");
 		{
-			GUILayout.Label(readme.icon, GUILayout.Width(iconWidth), GUILayout.Height(iconWidth));
-			GUILayout.Label(readme.title, TitleStyle);
+			GUILayout.Label(readme._icon, GUILayout.Width(iconWidth), GUILayout.Height(iconWidth));
+			GUILayout.Label(readme._title, TitleStyle);
 		}
 		GUILayout.EndHorizontal();
 	}
@@ -81,21 +81,21 @@ public class ReadmeEditor : Editor {
 		var readme = (Readme)target;
 		Init();
 		
-		foreach (var section in readme.sections)
+		foreach (var section in readme._sections)
 		{
-			if (!string.IsNullOrEmpty(section.heading))
+			if (!string.IsNullOrEmpty(section._heading))
 			{
-				GUILayout.Label(section.heading, HeadingStyle);
+				GUILayout.Label(section._heading, HeadingStyle);
 			}
-			if (!string.IsNullOrEmpty(section.text))
+			if (!string.IsNullOrEmpty(section._text))
 			{
-				GUILayout.Label(section.text, BodyStyle);
+				GUILayout.Label(section._text, BodyStyle);
 			}
-			if (!string.IsNullOrEmpty(section.linkText))
+			if (!string.IsNullOrEmpty(section._linkText))
 			{
-				if (LinkLabel(new GUIContent(section.linkText)))
+				if (LinkLabel(new GUIContent(section._linkText)))
 				{
-					Application.OpenURL(section.url);
+					Application.OpenURL(section._url);
 				}
 			}
 			GUILayout.Space(kSpace);
