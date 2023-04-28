@@ -8,21 +8,21 @@ namespace Completed
     {
         [FormerlySerializedAs("gameManager")] public GameObject _gameManager; //GameManager prefab to instantiate.
         [FormerlySerializedAs("soundManager")] public GameObject _soundManager; //SoundManager prefab to instantiate.
-
+        [SerializeField] private Player _player;
 
         private void Awake()
         {
-            //Check if a GameManager has already been assigned to static variable GameManager.instance or if it's still null
             if (GameManager.Instance == null)
-
-                //Instantiate gameManager prefab
                 Instantiate(_gameManager);
 
-            //Check if a SoundManager has already been assigned to static variable GameManager.instance or if it's still null
             if (SoundManager.Instance == null)
-
-                //Instantiate SoundManager prefab
                 Instantiate(_soundManager);
+
+#if UNITY_STANDALONE || UNITY_WEBPLAYER
+            _player.SetInput(new KeyboardInput());
+#elif UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
+            _player.SetInput(new TouchInput());
+#endif
         }
     }
 }

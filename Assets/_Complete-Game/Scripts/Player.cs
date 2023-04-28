@@ -9,37 +9,60 @@ namespace Completed
     //Player inherits from MovingObject, our base class for objects that can move, Enemy also inherits from this.
     public class Player : MovingObject
     {
-        [FormerlySerializedAs("restartLevelDelay")] public float _restartLevelDelay = 1f; //Delay time in seconds to restart level.
-        [FormerlySerializedAs("pointsPerFood")] public int _pointsPerFood = 10; //Number of points to add to player food points when picking up a food object.
-        [FormerlySerializedAs("pointsPerSoda")] public int _pointsPerSoda = 20; //Number of points to add to player food points when picking up a soda object.
-        [FormerlySerializedAs("wallDamage")] public int _wallDamage = 1; //How much damage a player does to a wall when chopping it.
-        [FormerlySerializedAs("foodText")] public Text _foodText; //UI Text to display current player food total.
-        [FormerlySerializedAs("moveSound1")] public AudioClip _moveSound1; //1 of 2 Audio clips to play when player moves.
-        [FormerlySerializedAs("moveSound2")] public AudioClip _moveSound2; //2 of 2 Audio clips to play when player moves.
-        [FormerlySerializedAs("eatSound1")] public AudioClip _eatSound1; //1 of 2 Audio clips to play when player collects a food object.
-        [FormerlySerializedAs("eatSound2")] public AudioClip _eatSound2; //2 of 2 Audio clips to play when player collects a food object.
-        [FormerlySerializedAs("drinkSound1")] public AudioClip _drinkSound1; //1 of 2 Audio clips to play when player collects a soda object.
-        [FormerlySerializedAs("drinkSound2")] public AudioClip _drinkSound2; //2 of 2 Audio clips to play when player collects a soda object.
-        [FormerlySerializedAs("gameOverSound")] public AudioClip _gameOverSound; //Audio clip to play when player dies.
+        [SerializeField] private float _restartLevelDelay = 1f; //Delay time in seconds to restart level.
+        [SerializeField] private int _pointsPerFood = 10; //Number of points to add to player food points when picking up a food object.
+        [SerializeField] private int _pointsPerSoda = 20; //Number of points to add to player food points when picking up a soda object.
+        [SerializeField] private int _wallDamage = 1; //How much damage a player does to a wall when chopping it.
+        [SerializeField] private Text _foodText; //UI Text to display current player food total.
+        [SerializeField] private AudioClip _moveSound1; //1 of 2 Audio clips to play when player moves.
+        [SerializeField] private AudioClip _moveSound2; //2 of 2 Audio clips to play when player moves.
+        [SerializeField] private AudioClip _eatSound1; //1 of 2 Audio clips to play when player collects a food object.
+        [SerializeField] private AudioClip _eatSound2; //2 of 2 Audio clips to play when player collects a food object.
+        [SerializeField] private AudioClip _drinkSound1; //1 of 2 Audio clips to play when player collects a soda object.
+        [SerializeField] private AudioClip _drinkSound2; //2 of 2 Audio clips to play when player collects a soda object.
 
-        private Animator _animator; //Used to store a reference to the Player's animator component.
-        private int _food; //Used to store player food points total during level.
-#if UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
-        private Vector2 touchOrigin = -Vector2.one;	//Used to store location of screen touch origin for mobile controls.
-#endif
+        [FormerlySerializedAs("gameOverSound")]
+        public AudioClip _gameOverSound; //Audio clip to play when player dies.
 
+        private Food _food; //Used to store player food points total during level.
 
+        private IGetInput _input;
+        private ICharacterAnimations _characterAnimations;
+
+        public void SetInput(IGetInput input)
+        {
+            _input = input;
+        }
+        
+        //LoseFood is called when an enemy attacks the player.
+        //It takes a parameter loss which specifies how many points to lose.
+        public void LoseFood(int loss)
+        {
+            //Set the trigger for the player animator to transition to the playerHit animation.
+            _characterAnimations.SetPlayerHit();
+
+            //Subtract lost food points from the players total.
+            _food.Remove(loss);
+
+            //Update the food display with the new total.
+            _foodText.text = "-" + loss + " Food: " + _food;
+
+            //Check to see if game has ended.
+            CheckIfGameOver();
+        }
+        
         //Start overrides the Start function of MovingObject
         protected override void Start()
         {
             //Get a component reference to the Player's animator component
-            _animator = GetComponent<Animator>();
+            _characterAnimations = new PlayerAnimations(GetComponent<Animator>());
 
             //Get the current food point total stored in GameManager.instance between levels.
-            _food = GameManager.Instance._playerFoodPoints;
+            _food = FoodManager.Instance.Get();
+            if (_food == null) _food = new Food(GameManager.Instance.Config.PlayerFoodPoints);
 
             //Set the foodText to reflect the current player food total.
-            _foodText.text = "Food: " + _food;
+            _foodText.text = "Food: " + _food.Amount;
 
             //Call the Start function of the MovingObject base class.
             base.Start();
@@ -50,74 +73,21 @@ namespace Completed
         private void OnDisable()
         {
             //When Player object is disabled, store the current local food total in the GameManager so it can be re-loaded in next level.
-            GameManager.Instance._playerFoodPoints = _food;
+            FoodManager.Instance.Save(_food);
         }
 
 
         private void Update()
         {
-            //If it's not the player's turn, exit the function.
             if (!GameManager.Instance._playersTurn) return;
 
-            var horizontal = 0; //Used to store the horizontal move direction.
-            var vertical = 0; //Used to store the vertical move direction.
+            var input = _input.GetInput();
+            var horizontal = input.x;
+            var vertical = input.y;
 
-            //Check if we are running either in the Unity editor or in a standalone build.
-#if UNITY_STANDALONE || UNITY_WEBPLAYER
-
-            //Get input from the input manager, round it to an integer and store in horizontal to set x axis move direction
-            horizontal = (int)Input.GetAxisRaw("Horizontal");
-
-            //Get input from the input manager, round it to an integer and store in vertical to set y axis move direction
-            vertical = (int)Input.GetAxisRaw("Vertical");
-
-            //Check if moving horizontally, if so set vertical to zero.
             if (horizontal != 0) vertical = 0;
-            //Check if we are running on iOS, Android, Windows Phone 8 or Unity iPhone
-#elif UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE
-			//Check if Input has registered more than zero touches
-			if (Input.touchCount > 0)
-			{
-				//Store the first touch detected.
-				Touch myTouch = Input.touches[0];
-				
-				//Check if the phase of that touch equals Began
-				if (myTouch.phase == TouchPhase.Began)
-				{
-					//If so, set touchOrigin to the position of that touch
-					touchOrigin = myTouch.position;
-				}
-				
-				//If the touch phase is not Began, and instead is equal to Ended and the x of touchOrigin is greater or equal to zero:
-				else if (myTouch.phase == TouchPhase.Ended && touchOrigin.x >= 0)
-				{
-					//Set touchEnd to equal the position of this touch
-					Vector2 touchEnd = myTouch.position;
-					
-					//Calculate the difference between the beginning and end of the touch on the x axis.
-					float x = touchEnd.x - touchOrigin.x;
-					
-					//Calculate the difference between the beginning and end of the touch on the y axis.
-					float y = touchEnd.y - touchOrigin.y;
-					
-					//Set touchOrigin.x to -1 so that our else if statement will evaluate false and not repeat immediately.
-					touchOrigin.x = -1;
-					
-					//Check if the difference along the x axis is greater than the difference along the y axis.
-					if (Mathf.Abs(x) > Mathf.Abs(y))
-						//If x is greater than zero, set horizontal to 1, otherwise set it to -1
-						horizontal = x > 0 ? 1 : -1;
-					else
-						//If y is greater than zero, set horizontal to 1, otherwise set it to -1
-						vertical = y > 0 ? 1 : -1;
-				}
-			}
-
-#endif //End of mobile platform dependendent compilation section started above with #elif
-            //Check if we have a non-zero value for horizontal or vertical
+            
             if (horizontal != 0 || vertical != 0)
-                //Call AttemptMove passing in the generic parameter Wall, since that is what Player may interact with if they encounter one (by attacking it)
-                //Pass in horizontal and vertical as parameters to specify the direction to move Player in.
                 AttemptMove<Wall>(horizontal, vertical);
         }
 
@@ -126,10 +96,10 @@ namespace Completed
         protected override void AttemptMove<T>(int xDir, int yDir)
         {
             //Every time player moves, subtract from food points total.
-            _food--;
+            _food.Remove(1);
 
             //Update food text display to reflect current score.
-            _foodText.text = "Food: " + _food;
+            _foodText.text = "Food: " + _food.Amount;
 
             //Call the AttemptMove method of the base class, passing in the component T (in this case Wall) and x and y direction to move.
             base.AttemptMove<T>(xDir, yDir);
@@ -161,7 +131,7 @@ namespace Completed
             hitWall.DamageWall(_wallDamage);
 
             //Set the attack trigger of the player's animation controller in order to play the player's attack animation.
-            _animator.SetTrigger("playerChop");
+            _characterAnimations.SetAttack();
         }
 
 
@@ -182,7 +152,7 @@ namespace Completed
             else if (other.tag == "Food")
             {
                 //Add pointsPerFood to the players current food total.
-                _food += _pointsPerFood;
+                _food.Add(_pointsPerFood);
 
                 //Update foodText to represent current total and notify player that they gained points
                 _foodText.text = "+" + _pointsPerFood + " Food: " + _food;
@@ -198,7 +168,7 @@ namespace Completed
             else if (other.tag == "Soda")
             {
                 //Add pointsPerSoda to players food points total
-                _food += _pointsPerSoda;
+                _food.Add(_pointsPerSoda);
 
                 //Update foodText to represent current total and notify player that they gained points
                 _foodText.text = "+" + _pointsPerSoda + " Food: " + _food;
@@ -221,29 +191,11 @@ namespace Completed
         }
 
 
-        //LoseFood is called when an enemy attacks the player.
-        //It takes a parameter loss which specifies how many points to lose.
-        public void LoseFood(int loss)
-        {
-            //Set the trigger for the player animator to transition to the playerHit animation.
-            _animator.SetTrigger("playerHit");
-
-            //Subtract lost food points from the players total.
-            _food -= loss;
-
-            //Update the food display with the new total.
-            _foodText.text = "-" + loss + " Food: " + _food;
-
-            //Check to see if game has ended.
-            CheckIfGameOver();
-        }
-
-
         //CheckIfGameOver checks if the player is out of food points and if so, ends the game.
         private void CheckIfGameOver()
         {
             //Check if food point total is less than or equal to zero.
-            if (_food <= 0)
+            if (_food.Amount <= 0)
             {
                 //Call the PlaySingle function of SoundManager and pass it the gameOverSound as the audio clip to play.
                 SoundManager.Instance.PlaySingle(_gameOverSound);
