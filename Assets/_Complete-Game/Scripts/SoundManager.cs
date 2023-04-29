@@ -4,27 +4,16 @@ using UnityEngine.Serialization;
 
 namespace Completed
 {
-    public class SoundManager : MonoBehaviour
+    public class SoundManager : MonoBehaviourSingleton<SoundManager>
     {
         [FormerlySerializedAs("efxSource")] public AudioSource _efxSource; //Drag a reference to the audio source which will play the sound effects.
         [FormerlySerializedAs("musicSource")] public AudioSource _musicSource; //Drag a reference to the audio source which will play the music.
-        public static SoundManager Instance = null; //Allows other scripts to call functions from SoundManager.				
         [FormerlySerializedAs("lowPitchRange")] public float _lowPitchRange = .95f; //The lowest a sound effect will be randomly pitched.
         [FormerlySerializedAs("highPitchRange")] public float _highPitchRange = 1.05f; //The highest a sound effect will be randomly pitched.
 
 
-        private void Awake()
+        private void Start()
         {
-            //Check if there is already an instance of SoundManager
-            if (Instance == null)
-                //if not, set it to this.
-                Instance = this;
-            //If instance already exists:
-            else if (Instance != this)
-                //Destroy this, this enforces our singleton pattern so there can only be one instance of SoundManager.
-                Destroy(gameObject);
-
-            //Set SoundManager to DontDestroyOnLoad so that it won't be destroyed when reloading our scene.
             DontDestroyOnLoad(gameObject);
         }
 

@@ -24,8 +24,6 @@ namespace Completed
         [FormerlySerializedAs("gameOverSound")]
         public AudioClip _gameOverSound; //Audio clip to play when player dies.
 
-        private Food _food; //Used to store player food points total during level.
-
         private IGetInput _input;
         private ICharacterAnimations _characterAnimations;
 
@@ -42,10 +40,10 @@ namespace Completed
             _characterAnimations.SetPlayerHit();
 
             //Subtract lost food points from the players total.
-            _food.Remove(loss);
+            FoodManager.Instance.CurrentFood.Remove(loss);
 
             //Update the food display with the new total.
-            _foodText.text = "-" + loss + " Food: " + _food;
+            DrawFood(-loss, FoodManager.Instance.CurrentFood.Amount);
 
             //Check to see if game has ended.
             CheckIfGameOver();
@@ -57,25 +55,12 @@ namespace Completed
             //Get a component reference to the Player's animator component
             _characterAnimations = new PlayerAnimations(GetComponent<Animator>());
 
-            //Get the current food point total stored in GameManager.instance between levels.
-            _food = FoodManager.Instance.Get();
-            if (_food == null) _food = new Food(GameManager.Instance.Config.PlayerFoodPoints);
-
             //Set the foodText to reflect the current player food total.
-            _foodText.text = "Food: " + _food.Amount;
+            DrawCurrentFood();
 
             //Call the Start function of the MovingObject base class.
             base.Start();
         }
-
-
-        //This function is called when the behaviour becomes disabled or inactive.
-        private void OnDisable()
-        {
-            //When Player object is disabled, store the current local food total in the GameManager so it can be re-loaded in next level.
-            FoodManager.Instance.Save(_food);
-        }
-
 
         private void Update()
         {
@@ -96,10 +81,10 @@ namespace Completed
         protected override void AttemptMove<T>(int xDir, int yDir)
         {
             //Every time player moves, subtract from food points total.
-            _food.Remove(1);
+            FoodManager.Instance.CurrentFood.Remove(1);
 
             //Update food text display to reflect current score.
-            _foodText.text = "Food: " + _food.Amount;
+            DrawCurrentFood();
 
             //Call the AttemptMove method of the base class, passing in the component T (in this case Wall) and x and y direction to move.
             base.AttemptMove<T>(xDir, yDir);
@@ -117,6 +102,11 @@ namespace Completed
 
             //Set the playersTurn boolean of GameManager to false now that players turn is over.
             GameManager.Instance._playersTurn = false;
+        }
+
+        private void DrawCurrentFood()
+        {
+            _foodText.text = "Food: " + FoodManager.Instance.CurrentFood.Amount;
         }
 
 
@@ -152,10 +142,10 @@ namespace Completed
             else if (other.tag == "Food")
             {
                 //Add pointsPerFood to the players current food total.
-                _food.Add(_pointsPerFood);
+                FoodManager.Instance.CurrentFood.Add(_pointsPerFood);
 
                 //Update foodText to represent current total and notify player that they gained points
-                _foodText.text = "+" + _pointsPerFood + " Food: " + _food;
+                DrawFood(_pointsPerFood, FoodManager.Instance.CurrentFood.Amount);
 
                 //Call the RandomizeSfx function of SoundManager and pass in two eating sounds to choose between to play the eating sound effect.
                 SoundManager.Instance.RandomizeSfx(_eatSound1, _eatSound2);
@@ -168,10 +158,11 @@ namespace Completed
             else if (other.tag == "Soda")
             {
                 //Add pointsPerSoda to players food points total
-                _food.Add(_pointsPerSoda);
+                FoodManager.Instance.CurrentFood.Add(_pointsPerSoda);
 
                 //Update foodText to represent current total and notify player that they gained points
-                _foodText.text = "+" + _pointsPerSoda + " Food: " + _food;
+                DrawFood(_pointsPerSoda, FoodManager.Instance.CurrentFood.Amount);
+
 
                 //Call the RandomizeSfx function of SoundManager and pass in two drinking sounds to choose between to play the drinking sound effect.
                 SoundManager.Instance.RandomizeSfx(_drinkSound1, _drinkSound2);
@@ -179,6 +170,20 @@ namespace Completed
                 //Disable the soda object the player collided with.
                 other.gameObject.SetActive(false);
             }
+        }
+
+        private void DrawFood(int amountAdded, int current)
+        {
+            if (amountAdded < 0)
+            {
+                _foodText.text += "-";
+            }
+            else
+            {
+                _foodText.text += "+";
+            }
+            
+            _foodText.text += (amountAdded + " Food: " + current);
         }
 
 
@@ -195,7 +200,7 @@ namespace Completed
         private void CheckIfGameOver()
         {
             //Check if food point total is less than or equal to zero.
-            if (_food.Amount <= 0)
+            if (FoodManager.Instance.CurrentFood.Amount <= 0)
             {
                 //Call the PlaySingle function of SoundManager and pass it the gameOverSound as the audio clip to play.
                 SoundManager.Instance.PlaySingle(_gameOverSound);

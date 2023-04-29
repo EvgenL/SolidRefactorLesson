@@ -17,10 +17,8 @@ namespace Completed
         [field: SerializeField] public int PlayerFoodPoints { get; private set; } = 100;
     }
 
-    public class GameManager : MonoBehaviour
+    public class GameManager : MonoBehaviourSingleton<GameManager>
     {
-        public static GameManager Instance = null;
-
         [field: SerializeField] public GameConfig Config { get; private set; }
         
         [FormerlySerializedAs("playersTurn")] [HideInInspector]
@@ -40,21 +38,8 @@ namespace Completed
 
 
         //Awake is always called before any Start functions
-        private void Awake()
+        private void Start()
         {
-            //Check if instance already exists
-            if (Instance == null)
-
-                //if not, set instance to this
-                Instance = this;
-
-            //If instance already exists and it's not this:
-            else if (Instance != this)
-
-                //Then destroy this. This enforces our singleton pattern, meaning there can only ever be one instance of a GameManager.
-                Destroy(gameObject);
-
-            //Sets this to not be destroyed when reloading scene
             DontDestroyOnLoad(gameObject);
 
             //Assign enemies to a new List of Enemy objects.

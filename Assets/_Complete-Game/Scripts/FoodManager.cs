@@ -1,34 +1,12 @@
 namespace Completed
 {
-    public class FoodManager
+    public class FoodManager : MonoBehaviourSingleton<FoodManager>
     {
-        public static FoodManager Instance
+        private FoodManager()
         {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new FoodManager();
-                }
-
-                return _instance;
-            }
+            CurrentFood = new Food(GameManager.Instance.Config.PlayerFoodPoints);
         }
-        
-        private static FoodManager _instance;
 
-        private FoodManager(){}
-
-        private Food _storedFood;
-
-        public void Save(Food food)
-        {
-            _storedFood = food;
-        }
-        
-        public Food Get()
-        {
-            return _storedFood;
-        }
+        public Food CurrentFood { get; private set; }
     }
 }
