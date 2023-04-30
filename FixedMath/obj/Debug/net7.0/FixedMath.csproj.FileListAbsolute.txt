@@ -1,0 +1,12 @@
+/Users/evgen/SolidRefactorLesson/FixedMath/bin/Debug/net7.0/FixedMath.deps.json
+/Users/evgen/SolidRefactorLesson/FixedMath/bin/Debug/net7.0/FixedMath.dll
+/Users/evgen/SolidRefactorLesson/FixedMath/bin/Debug/net7.0/FixedMath.pdb
+/Users/evgen/SolidRefactorLesson/FixedMath/obj/Debug/net7.0/FixedMath.csproj.AssemblyReference.cache
+/Users/evgen/SolidRefactorLesson/FixedMath/obj/Debug/net7.0/FixedMath.GeneratedMSBuildEditorConfig.editorconfig
+/Users/evgen/SolidRefactorLesson/FixedMath/obj/Debug/net7.0/FixedMath.AssemblyInfoInputs.cache
+/Users/evgen/SolidRefactorLesson/FixedMath/obj/Debug/net7.0/FixedMath.AssemblyInfo.cs
+/Users/evgen/SolidRefactorLesson/FixedMath/obj/Debug/net7.0/FixedMath.csproj.CoreCompileInputs.cache
+/Users/evgen/SolidRefactorLesson/FixedMath/obj/Debug/net7.0/FixedMath.dll
+/Users/evgen/SolidRefactorLesson/FixedMath/obj/Debug/net7.0/refint/FixedMath.dll
+/Users/evgen/SolidRefactorLesson/FixedMath/obj/Debug/net7.0/FixedMath.pdb
+/Users/evgen/SolidRefactorLesson/FixedMath/obj/Debug/net7.0/ref/FixedMath.dll
